@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <set>
 using namespace std;
 
 //node struct to store the data points
@@ -57,27 +58,39 @@ double leaveOne(vector<node> points, vector<int> feats) {
 }
 
 void forwardSelect(vector<node> points) {
-    vector<int> bestSoFar;
-    double acc;
-    int ones = 0;
-    for(int i = 0; i < points.size(); ++i) {
-        if(points.at(i).type == 1) {
-            ++ones;
-        }
-    }
-    if(ones > (points.size() / 2)) {
-        acc = (double) ones / points.size();
-    }
-    else {
-        acc = (double) (points.size() - ones) / points.size();
-    }
     vector<int> curr;
-    for(int i = 0; i < points.at(0).features.size(); ++i) {
-        curr.push_back(i);
-        if(leaveOne(points, curr) > acc) {
-            
+    vector<int> best;
+    double bestAcc;
+    int numfeatures = points.at(0).features.size();
+    set<int> currset;
+    for(int i = 0; i < numfeatures; ++i) {
+        cout << "On the " << i + 1 << "th level of the search tree" << endl;
+        int featToAdd;
+        double bestSoFarAcc = 0;
+        for(int j = 0; j < numfeatures; ++j) {
+            if(currset.find(j) == currset.end()) {
+                cout << "--Considering adding feature " << j + 1 << endl;
+                vector<int> totry = curr;
+                totry.push_back(j);
+                double acc = leaveOne(points, totry);
+                if(acc > bestSoFarAcc) {
+                    bestSoFarAcc = acc;
+                    featToAdd = j;
+                }
+            }
+        }
+        curr.push_back(featToAdd);
+        currset.insert(featToAdd);
+        if(bestSoFarAcc > bestAcc) {
+            bestAcc = bestSoFarAcc;
+            best = curr;
         }
     }
+    cout << "Final feature set ";
+    for(int i = 0; i < best.size(); ++i) {
+        cout << best.at(i) << " ";
+    }
+    cout << endl << "Accuracy " << bestAcc << endl;
 }
 
 void backwardSelect(vector<node> points) {
@@ -105,4 +118,5 @@ int main(int argc, char** argv) {
         points.push_back(temp);
     }
     fin.close();
+    forwardSelect(points);
 }
