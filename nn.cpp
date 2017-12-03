@@ -21,7 +21,7 @@ node nearestNeighbor(node n, vector<node> points, vector<int> feats) {
         double temp = 0;    //variable used to calculate distance
         for(int j = 0; j < feats.size(); ++j) {
             //test only the features that we are trying in feature select
-            double num = n.features.at(j) - points.at(i).features.at(feats.at(j));
+            double num = n.features.at(feats.at(j)) - points.at(i).features.at(feats.at(j));
             temp += pow(num, 2);
         }
         temp = sqrt(temp);
@@ -60,7 +60,7 @@ double leaveOne(vector<node> points, vector<int> feats) {
 void forwardSelect(vector<node> points) {
     vector<int> curr;
     vector<int> best;
-    double bestAcc;
+    double bestAcc = 0;
     int numfeatures = points.at(0).features.size();
     set<int> currset;
     for(int i = 0; i < numfeatures; ++i) {
@@ -79,6 +79,7 @@ void forwardSelect(vector<node> points) {
                 }
             }
         }
+        cout << "Added feature " << featToAdd + 1 << " with accuracy " << bestSoFarAcc << endl;
         curr.push_back(featToAdd);
         currset.insert(featToAdd);
         if(bestSoFarAcc > bestAcc) {
@@ -86,19 +87,58 @@ void forwardSelect(vector<node> points) {
             best = curr;
         }
     }
-    cout << "Final feature set ";
+    cout << "Final feature set: ";
     for(int i = 0; i < best.size(); ++i) {
-        cout << best.at(i) << " ";
+        cout << best.at(i) + 1 << " ";
     }
     cout << endl << "Accuracy " << bestAcc << endl;
 }
 
 void backwardSelect(vector<node> points) {
-
+    vector<int> curr;
+    vector<int> best;
+    double bestAcc = 0;
+    int numfeatures = points.at(0).features.size();
+    set<int> currset;
+    //populate the current feature set with all of the features
+    for(int i = 0; i < numfeatures; ++i) {
+        curr.push_back(i);
+        currset.insert(i);
+    }
+    for(int i = 0; i < numfeatures; ++i) {
+        cout << "On the " << i + 1 << "th level of the search tree" << endl;
+        int featToRem = 0;
+        double bestSoFarAcc = 0;
+        for(int j = 0; j < curr.size(); ++j) {
+            if(currset.find(j) != currset.end()) {
+              cout << "Considering removing feature " << j + 1 << endl;
+              vector<int> totry = curr;
+              totry.erase(totry.begin() + j);
+              double acc = leaveOne(points, totry);
+              if(acc > bestSoFarAcc) {
+                  bestSoFarAcc = acc;
+                  featToRem = j;
+              }
+            }
+        }
+        cout << "Removed feature " << featToRem + 1 << " with accuracy " << bestSoFarAcc << endl;
+        curr.erase(curr.begin() + featToRem);
+        currset.erase(featToRem);
+        if(bestSoFarAcc > bestAcc) {
+            bestAcc = bestSoFarAcc;
+            best = curr;
+        }
+    }
+    cout << "Final Feature set: ";
+    for(int i = 0; i < best.size(); ++i) {
+        cout << best.at(i) + 1 << " ";
+    }
+    cout << endl << "Accuracy " << bestAcc << endl;
 }
 
+//like foward select but takes the top 2 features 
 void customSelect(vector<node>points) {
-
+    
 }
 int main(int argc, char** argv) {
     vector<node> points;
@@ -118,5 +158,32 @@ int main(int argc, char** argv) {
         points.push_back(temp);
     }
     fin.close();
-    forwardSelect(points);
+    //normalize the data
+    for(int i = 0; i < points.at(0).features.size(); ++i) {
+        //calculate mean
+        double mean = 0;
+        for(int j = 0; j < points.size(); ++j) {
+            mean += points.at(j).features.at(i);
+        }
+        mean /= (double) points.size();
+        //calculate standard deviation
+        double stddev = 0;
+        for(int j = 0; j < points.size(); ++j) {
+            stddev += pow((points.at(j).features.at(i) - mean), 2);
+        }
+        stddev /= (double) points.size();
+        //assign z values to features
+        for(int j = 0; j < points.size(); ++j) {
+            points.at(j).features.at(i) = ((points.at(j).features.at(i) - mean) / stddev);
+        }
+    }
+    cout << "Welcome to Jacob Kuznicki's Feature Selection Algorithm." << endl;
+    cout << "Type the number of the algorithm you want to run." << endl;
+    cout << "1) Forward Select" << endl;
+    cout << "2) Backward Elimination" << endl;
+    cout << "3) Custom Selection Algorithm" << endl;
+    int input;
+    cin >> input;
+    cout << "The dataset has " << points.at(0).features.size() << " features (not inlcuding the class attribute), with " << points.size() << " instances." << endl;
+    cout << "Data has been normalized beginning search" << endl;
 }
