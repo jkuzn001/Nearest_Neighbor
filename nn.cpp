@@ -136,9 +136,52 @@ void backwardSelect(vector<node> points) {
     cout << endl << "Accuracy " << bestAcc << endl;
 }
 
-//like foward select but takes the top 2 features 
+//like foward select but stops searching after 3 consectutive trys that are below best so far accuracy 
 void customSelect(vector<node>points) {
-    
+    vector<int> curr;
+    vector<int> best;
+    double bestAcc = 0;
+    int numfeatures = points.at(0).features.size();
+    set<int> currset;
+    int dec = 0;
+    for(int i = 0; i < numfeatures; ++i) {
+        cout << "On the " << i + 1 << "th level of the search tree" << endl;
+        int featToAdd;
+        double bestSoFarAcc = 0;
+        for(int j = 0; j < numfeatures; ++j) {
+            if(currset.find(j) == currset.end()) {
+                cout << "--Considering adding feature " << j + 1 << endl;
+                vector<int> totry = curr;
+                totry.push_back(j);
+                double acc = leaveOne(points, totry);
+                if(acc > bestSoFarAcc) {
+                    bestSoFarAcc = acc;
+                    featToAdd = j;
+                }
+            }
+        }
+        cout << "Added feature " << featToAdd + 1 << " with accuracy " << bestSoFarAcc << endl;
+        curr.push_back(featToAdd);
+        currset.insert(featToAdd);
+        if(bestSoFarAcc > bestAcc) {
+            bestAcc = bestSoFarAcc;
+            best = curr;
+            dec = 0;
+        }
+        else {
+            ++dec;
+        }
+        if(dec >= 3) {
+            cout << "Features have stopped improving accuracy terminating search." << endl;
+            break;
+        }
+    }
+    cout << "Final feature set: ";
+    for(int i = 0; i < best.size(); ++i) {
+        cout << best.at(i) + 1 << " ";
+    }
+    cout << endl << "Accuracy " << bestAcc << endl;
+
 }
 int main(int argc, char** argv) {
     vector<node> points;
@@ -186,4 +229,14 @@ int main(int argc, char** argv) {
     cin >> input;
     cout << "The dataset has " << points.at(0).features.size() << " features (not inlcuding the class attribute), with " << points.size() << " instances." << endl;
     cout << "Data has been normalized beginning search" << endl;
+
+    if(input == 1) {
+        forwardSelect(points);
+    }
+    else if(input == 2) {
+        backwardSelect(points);
+    }
+    else {
+        customSelect(points);
+    }
 }
