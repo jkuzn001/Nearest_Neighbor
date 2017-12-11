@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
     cout << "3) Custom Selection Algorithm" << endl;
     int input;
     cin >> input;
-    cout << "The dataset has " << points.at(0).features.size() << " features (not inlcuding the class attribute), with " << points.size() << " instances." << endl;
+    cout << "The dataset has " << points.at(0).features.size() << " features (not including the class attribute), with " << points.size() << " instances." << endl;
     cout << "Data has been normalized beginning search" << endl;
 
     if(input == 1) {
